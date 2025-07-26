@@ -1,0 +1,7 @@
+diff --git a/templates/index.html b/templates/index.html
+new file mode 100644
+index 0000000..e69de29
+--- /dev/null
++++ b/templates/index.html
+@@ ...
++<button>Submit</button>

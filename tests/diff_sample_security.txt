@@ -1,0 +1,9 @@
+diff --git a/app.py b/app.py
+new file mode 100644
+index 0000000..e69de29
+--- /dev/null
++++ b/app.py
+@@ ...
++import os
++def foo():
++    return os.environ.get('SECRET_KEY')

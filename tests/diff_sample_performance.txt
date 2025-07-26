@@ -1,0 +1,14 @@
+diff --git a/main.js b/main.js
+index 1234567..89abcde 100644
+--- a/main.js
++++ b/main.js
+@@ ...
+-function processData(data) {
+-    for (let i = 0; i < data.length; i++) {
+-        // ...
+-    }
++function processData(data) {
++    data.forEach(item => {
++        // ...
++    });
+ }
