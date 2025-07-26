@@ -2,7 +2,7 @@
 
 import os
 import openai
-from config import get_openai_api_key
+from config import get_openai_api_key, get_gemini_api_key
 import requests
 
 def load_prompt_template(mode, prompts_dir="prompts"):
@@ -68,7 +68,7 @@ def call_llm(prompt, provider="openai", model=None, model_preference=("gpt-4-tur
                 continue
         raise RuntimeError(f"All LLM model calls failed. Last error: {last_error}")
     elif provider == "google":
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = get_gemini_api_key()
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY not found. Please set it in your .env file or environment variables.")
         # Use a valid Gemini model name as default

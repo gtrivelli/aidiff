@@ -2,88 +2,101 @@
 
 import re
 
+# Only keep the regex that is actually used
+MARKDOWN_BULLET_REGEX = r'\*\*([A-Za-z\s]+):\*\*\s*([\s\S]+?)(?=\n\*\*|\Z)'
+
 def parse_llm_output(output):
     """
     Parse the LLM output and identify each issue block (file, severity, confidence, suggestion).
     Returns a list of dicts, one per issue.
     Handles both markdown and prose output from LLMs like Gemini.
     Enhanced to handle Gemini's prose/numbered-list style.
+    Now robustly handles multi-line and code block fields (especially **Code:**).
+    Streamlined for readability and maintainability.
+    Consolidates markdown and prose parsing into a single approach.
+    Uses simple line splitting and prefix checks for markdown fields for clarity.
+    Handles code blocks robustly, supporting variations in delimiters (e.g., ```, ``).
     """
     issues = []
-    # Try to extract markdown-style blocks first
     issue_blocks = re.split(r'---+', output)
     for block in issue_blocks:
-        if not block.strip():
-            continue  # Skip empty blocks
+        block = block.strip()
+        if not block:
+            continue
         issue = {}
-        file_match = re.search(r'\*\*File:\*\*\s*([^\n]+)', block)
-        if file_match:
-            issue['file'] = file_match.group(1).strip()
-        else:
-            file_match = re.search(r'`([^`]+)`', block)
-            if file_match:
-                issue['file'] = file_match.group(1)
-        for field in ['Issue', 'Severity', 'Confidence', 'Suggestion', 'Line Number', 'Code']:
-            match = re.search(rf'\*\*{field}:\*\*\s*(.+)', block)
-            if match:
-                issue[field.lower().replace(' ', '_')] = match.group(1).strip()
-        # Ensure 'file', 'line_number', and 'code' are always present and meaningful
-        if not issue.get('file') or issue['file'] == 'N/A':
-            # Try to infer file from the diff context in the prompt (not just the block)
-            file_match = re.search(r'diff --git a/([^\s]+)', output)
-            if file_match:
-                issue['file'] = file_match.group(1)
-            else:
-                issue['file'] = 'N/A'
-        if 'line_number' not in issue or not issue['line_number'] or issue['line_number'] == 'N/A':
-            # Try to infer line number from the code context in the block
-            code_match = re.search(r'^\+[^+][^\n]+', block, re.MULTILINE)
-            if code_match:
-                # Try to find the line number in the diff hunk header
-                hunk_match = re.search(r'^@@ -\d+(,\d+)? \+(\d+)', output, re.MULTILINE)
-                if hunk_match:
-                    issue['line_number'] = hunk_match.group(2)
+        lines = block.splitlines()
+        field = None
+        value_lines = []
+        in_code_block = False
+        code_block_delim = None
+        # Map markdown field names to dict keys
+        field_map = {
+            'File': 'file',
+            'Issue': 'issue',
+            'Severity': 'severity',
+            'Confidence': 'confidence',
+            'Suggestion': 'suggestion',
+            'Line Number': 'line_number',
+            'Code': 'code',
+        }
+        for line in lines:
+            line_stripped = line.strip()
+            # Check for markdown field prefix directly, no need for regex or looping
+            matched_field = None
+            for markdown_field, dict_key in field_map.items():
+                prefix = f"**{markdown_field}:**"
+                if line_stripped.startswith(prefix) and not in_code_block:
+                    matched_field = markdown_field
+                    break
+            if matched_field:
+                # Save previous field
+                if field and value_lines:
+                    val = '\n'.join(value_lines).strip()
+                    if field == 'Code' and code_block_delim:
+                        val = re.sub(rf'^{re.escape(code_block_delim)}[a-zA-Z0-9]*', '', val)
+                        val = re.sub(rf'{re.escape(code_block_delim)}$', '', val).strip()
+                    issue[field_map.get(field, field.lower().replace(' ', '_'))] = val
+                field = matched_field
+                val = line_stripped[len(f"**{matched_field}:**"):].lstrip()
+                # Detect code block delimiter (``` or ``)
+                if field == 'Code' and (val.startswith('```') or val.startswith('``')):
+                    in_code_block = True
+                    code_block_delim = val[:3] if val.startswith('```') else val[:2]
+                    value_lines = [val]
                 else:
-                    issue['line_number'] = 'N/A'
+                    in_code_block = False
+                    code_block_delim = None
+                    value_lines = [val] if val else []
             else:
-                issue['line_number'] = 'N/A'
-        if 'code' not in issue or not issue['code'] or issue['code'] == 'N/A':
-            # Try to extract a code line from the diff block if possible
-            code_match = re.search(r'^\+[^+][^\n]+', block, re.MULTILINE)
-            if code_match:
-                issue['code'] = code_match.group(0)
-            else:
-                issue['code'] = 'N/A'
-        if issue:
-            issues.append(issue)
-    # If no markdown blocks found, try to extract issues from Gemini-style prose
-    if not issues:
-        # Try to extract bulleted issues with bolded headings
-        bullets = re.findall(r'\*\*([A-Za-z\s]+):\*\*\s*([\s\S]+?)(?=\n\*\*|\Z)', output)
-        for title, desc in bullets:
-            issue = {'issue': title.strip() + ': ' + desc.strip()}
-            # Try to guess file from desc if present
-            file_match = re.search(r'in ([`\w\./-]+)', desc)
-            issue['file'] = file_match.group(1) if file_match else 'N/A'
-            issue['severity'] = ''
-            issue['confidence'] = ''
-            issue['suggestion'] = ''
-            issue['line_number'] = 'N/A'
-            issue['code'] = 'N/A'
-            issues.append(issue)
-        # Try to extract recommendations as suggestions
-        recs = re.findall(r'\d+\.\s+([\s\S]+?)(?=\n\d+\.|\Z)', output)
-        for i, rec in enumerate(recs):
-            if i < len(issues):
-                issues[i]['suggestion'] = rec.strip()
-            else:
-                issues.append({'issue': '', 'file': 'N/A', 'severity': '', 'confidence': '', 'suggestion': rec.strip(), 'line_number': 'N/A', 'code': 'N/A'})
+                if field == 'Code' and (in_code_block or (line_stripped.startswith('```') or line_stripped.startswith('``'))):
+                    value_lines.append(line)
+                    # End code block if delimiter found
+                    if code_block_delim and line_stripped.startswith(code_block_delim):
+                        in_code_block = False
+                elif field:
+                    value_lines.append(line)
+        # Save last field
+        if field and value_lines:
+            val = '\n'.join(value_lines).strip()
+            if field == 'Code' and code_block_delim:
+                val = re.sub(rf'^{re.escape(code_block_delim)}[a-zA-Z0-9]*', '', val)
+                val = re.sub(rf'{re.escape(code_block_delim)}$', '', val).strip()
+            issue[field_map.get(field, field.lower().replace(' ', '_'))] = val
+        issues.append(issue)
     # If still no issues, treat the whole output as a single issue summary
     if not issues:
         issues = [{"issue": output.strip(), 'file': 'N/A', 'severity': '', 'confidence': '', 'suggestion': '', 'line_number': 'N/A', 'code': 'N/A'}]
     issues = filter_false_positives(issues)
-    # Remove empty issues (all fields blank except 'file', 'line_number', 'code')
-    issues = [i for i in issues if any(v for k, v in i.items() if k not in ('file', 'line_number', 'code'))]
+    # Remove empty issues: must have at least one of issue, suggestion, severity, or confidence non-empty
+    def is_real_issue(i):
+        important_fields = ['issue', 'suggestion', 'severity', 'confidence']
+        if not any(i.get(f, '').strip() for f in important_fields):
+            return False
+        code_val = i.get('code', '')
+        if not code_val.strip():
+            i['code'] = ''
+        return True
+    issues = [i for i in issues if is_real_issue(i)]
     return issues
 
 def print_issues_markdown(issues, group_by='file'):
@@ -138,6 +151,7 @@ def filter_false_positives(issues):
     Remove issues that are false positives, such as flagged lines with known placeholders
     or complaints about .env not in .gitignore when it is present.
     This logic is general and applies to any prompt or review type.
+    Also skips issues where the 'issue' field is just a generic field label (e.g., 'suggestion', 'issue', etc.)
     """
     # Read .gitignore to check for .env
     try:
@@ -146,6 +160,7 @@ def filter_false_positives(issues):
     except Exception:
         gitignore_content = ''
     filtered = []
+    generic_fields = {'suggestion', 'issue', 'severity', 'confidence', 'file', 'code', 'line number'}
     for issue in issues:
         # Check all relevant fields for placeholder values
         for field in ['code', 'suggestion', 'issue']:
@@ -153,6 +168,10 @@ def filter_false_positives(issues):
             if is_placeholder_value(val):
                 break  # skip this issue
         else:
+            # Skip if 'issue' field is just a generic field label or empty
+            issue_val = (issue.get('issue') or '').strip().lower()
+            if issue_val in generic_fields or not issue_val or re.fullmatch(r'^[\W_]+$', issue_val):
+                continue
             # .env/.gitignore logic remains
             if (
                 issue.get('file', '').strip() == '.gitignore' and
