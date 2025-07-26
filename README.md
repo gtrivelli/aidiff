@@ -1,6 +1,6 @@
-# AIDiff: LLM-Powered Git Diff Reviewer
+# AutoDiff: LLM-Powered Git Diff Reviewer
 
-AIDiff is a CLI tool that uses large language models (LLMs) to review your code changes for security, accessibility, and performance issues before you open a pull request.
+AutoDiff is a CLI tool that uses large language models (LLMs) to review your code changes for security, accessibility, and performance issues before you open a pull request.
 
 ## Purpose
 - Detect and report potential issues in code before PR creation.
@@ -13,7 +13,7 @@ AIDiff is a CLI tool that uses large language models (LLMs) to review your code 
 1. **Clone the repository:**
    ```bash
    git clone <your-repo-url>
-   cd aidiff
+   cd autodiff
    ```
 2. **Install dependencies:**
    ```bash

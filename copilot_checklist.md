@@ -1,4 +1,4 @@
-# 🧩 AIDiff Development Checklist (Step-by-Step)
+# 🧩 AutoDiff Development Checklist (Step-by-Step)
 
 ## ✅ Step 1: Project Setup
 - [x] Initialize Python project
@@ -98,7 +98,6 @@
 ---
 
 ## 🧩 Future (Post-MVP)
-- [ ] Package as pip-installable CLI
 - [ ] Add VSCode extension wrapper
 - [ ] Add GitHub Action support
 - [ ] Explore integrating OSS LLMs via Hugging Face

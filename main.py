@@ -1,4 +1,4 @@
-# Entry point for AIDiff CLI
+# Entry point for AutoDiff CLI
 
 import argparse
 import subprocess
@@ -8,7 +8,7 @@ from utils import parse_llm_output, print_issues_markdown
 from reviewer import call_llm
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="AIDiff: LLM-powered git diff reviewer")
+    parser = argparse.ArgumentParser(description="AutoDiff: LLM-powered git diff reviewer")
     parser.add_argument('--base', type=str, default='origin/main', help='Base branch to diff against (default: origin/main)')
     parser.add_argument('--staged', action='store_true', help='Only include staged changes in the diff')
     parser.add_argument('--modes', nargs='+', default=['security'], help='Review modes: security, accessibility, performance')

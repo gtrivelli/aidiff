@@ -1,7 +1,7 @@
-# 📌 AIDiff - LLM-Powered Git Diff Reviewer
+# 📌 AutoDiff - LLM-Powered Git Diff Reviewer
 
 ## 📄 Overview
-AIDiff is a developer tool that scans `git diff` output before a pull request is created. 
+AutoDiff is a developer tool that scans `git diff` output before a pull request is created. 
 It uses LLMs to identify security vulnerabilities (and optionally other issues like accessibility 
 or performance problems) in changed code. The initial version is a CLI tool, later intended for 
 integration into a VSCode extension.

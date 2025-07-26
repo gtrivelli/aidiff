@@ -1,4 +1,4 @@
-# Utility functions for AIDiff
+# Utility functions for AutoDiff
 
 import re
 
