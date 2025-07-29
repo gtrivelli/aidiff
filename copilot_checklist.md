@@ -98,7 +98,5 @@
 ---
 
 ## 🧩 Future (Post-MVP)
-- [ ] Package as pip-installable CLI
-- [ ] Add VSCode extension wrapper
-- [ ] Add GitHub Action support
+- [x] Add VSCode extension wrapper
 - [ ] Explore integrating OSS LLMs via Hugging Face

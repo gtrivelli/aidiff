@@ -5,7 +5,7 @@ AIDiff is a CLI tool that uses large language models (LLMs) to review your code 
 ## Purpose
 - Detect and report potential issues in code before PR creation.
 - Focus on security, but allow configuration for other review types.
-- Make the tool easy to use with minimal manual setup.
+- Make the tool easy to use with minimal setup.
 - Format output clearly for developers.
 
 ## Setup Instructions
@@ -34,7 +34,33 @@ AIDiff is a CLI tool that uses large language models (LLMs) to review your code 
 ## Example Usage
 
 ```bash
-python main.py --modes security --include-untracked --provider google --model models/gemini-1.5-flash --output markdown
+# Basic security review
+python main.py --modes security --provider openai
+
+# Multi-mode review with Google Gemini
+python main.py --modes security accessibility performance --provider google --model gemini-1.5-flash
+
+# Include untracked files and debug output
+python main.py --modes security --include-untracked --debug
+```
+
+## Programmatic Usage (New)
+
+With the refactored architecture, you can now use AIDiff programmatically:
+
+```python
+from aidiff import AIDiffReviewer, ReviewConfig
+
+config = ReviewConfig(
+    base_branch="main",
+    modes=["security", "performance"],
+    provider="openai",
+    output_format="markdown"
+)
+
+reviewer = AIDiffReviewer(config)
+result = reviewer.review()
+print(result)
 ```
 
 ## Example Output
@@ -74,10 +100,53 @@ python main.py --modes security --include-untracked --provider google --model mo
 
 ## Running Tests
 
-To run all unit tests and sample diff tests:
+To run all unit tests:
 
 ```bash
-python3 -m unittest discover tests
+# Run all tests (requires virtual environment)
+source .venv/bin/activate
+PYTHONPATH=/path/to/aidiff python -m unittest tests.test_core tests.test_refactored -v
+
+# Or run specific test suites
+python -m unittest tests.test_refactored.TestPromptManager -v
+```
+
+## Extending AIDiff
+
+### Adding a New LLM Provider
+
+```python
+from aidiff.providers import LLMProvider
+
+class MyCustomProvider(LLMProvider):
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+    
+    def generate_response(self, prompt: str, model: str = None) -> str:
+        # Your implementation here
+        return "Generated response"
+    
+    def get_default_models(self) -> tuple:
+        return ("my-model-v1", "my-model-v2")
+
+# Register the provider
+from aidiff.providers.factory import LLMProviderFactory
+LLMProviderFactory._providers["mycustom"] = MyCustomProvider
+```
+
+### Adding a New Output Format
+
+```python
+from aidiff.formatters import OutputFormatter
+
+class MyCustomFormatter(OutputFormatter):
+    def format_issues(self, issues, group_by='file'):
+        # Your custom formatting logic
+        return "Formatted output"
+
+# Register the formatter  
+from aidiff.formatters.factory import FormatterFactory
+FormatterFactory._formatters["custom"] = MyCustomFormatter
 ```
 
 ---
