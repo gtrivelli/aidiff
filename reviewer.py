@@ -7,7 +7,7 @@ from config import get_openai_api_key, get_gemini_api_key
 def load_prompt_template(mode, prompts_dir=None):
     """
     Load a prompt template file (Markdown/Plaintext) from the prompts directory.
-    mode: e.g. 'security', 'accessibility', 'performance'
+    mode: e.g. 'security', 'accessibility', 'performance', 'quality'
     """
     if prompts_dir is None:
         # Get the directory where this script is located
@@ -21,15 +21,38 @@ def load_prompt_template(mode, prompts_dir=None):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
+def load_base_prompt(prompts_dir=None):
+    """
+    Load the base prompt template that contains common instructions.
+    """
+    if prompts_dir is None:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        prompts_dir = os.path.join(script_dir, "prompts")
+    
+    base_path = os.path.join(prompts_dir, "base.md")
+    if not os.path.exists(base_path):
+        raise FileNotFoundError(f"Base prompt template not found: {base_path}")
+    with open(base_path, "r", encoding="utf-8") as f:
+        return f.read()
+
 def combine_prompt_templates(modes, prompts_dir=None):
     """
-    Combine multiple prompt templates for the selected modes.
-    Returns a single string with all prompts separated by two newlines.
+    Combine the base prompt with specific mode templates for the selected modes.
+    Returns a single string with base prompt + all mode-specific prompts.
     """
-    prompts = []
+    # Load base prompt first
+    base_prompt = load_base_prompt(prompts_dir=prompts_dir)
+    
+    # Load mode-specific prompts
+    mode_prompts = []
     for mode in modes:
-        prompts.append(load_prompt_template(mode, prompts_dir=prompts_dir))
-    return "\n\n".join(prompts)
+        mode_prompts.append(load_prompt_template(mode, prompts_dir=prompts_dir))
+    
+    # Combine: base prompt + mode-specific sections
+    if mode_prompts:
+        return f"{base_prompt}\n\n{chr(10).join(mode_prompts)}"
+    else:
+        return base_prompt
 
 def build_final_prompt(modes, diff, prompts_dir=None, max_diff_length=8000):
     """
@@ -40,7 +63,25 @@ def build_final_prompt(modes, diff, prompts_dir=None, max_diff_length=8000):
     warning = ""
     if len(diff) > max_diff_length:
         warning = f"\n\n⚠️ Warning: Diff is very large ({len(diff)} chars). LLM may not process the full context."
-    formatted = f"{prompt}\n\n---\n\n### Git Diff\n\n```diff\n{diff}\n```{warning}"
+    
+    # Enhanced formatting with line number guidance
+    formatted = f"""{prompt}
+
+---
+
+## REVIEW MODES ACTIVE
+{', '.join([f"**{mode.upper()}**" for mode in modes])}
+
+---
+
+### Git Diff Analysis
+
+**IMPORTANT:** Pay close attention to the line numbers in the @@ headers and use them for accurate line number reporting.
+
+```diff
+{diff}
+```{warning}"""
+    
     return formatted
 
 def call_llm(prompt, provider="chatgpt", model=None):

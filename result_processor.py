@@ -18,7 +18,7 @@ class LLMResultProcessor:
     def process_llm_response(self, llm_response: str, review_types: List[str], files_analyzed: List[str]) -> AnalysisResultDTO:
         """
         Convert raw LLM response text to structured AnalysisResultDTO
-        
+        s
         Args:
             llm_response: Raw text response from LLM
             review_types: List of review types that were analyzed

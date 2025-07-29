@@ -17,6 +17,7 @@ class ReviewType(Enum):
     SECURITY = "security"
     ACCESSIBILITY = "accessibility"
     PERFORMANCE = "performance"
+    QUALITY = "quality"
 
 @dataclass
 class IssueDTO:

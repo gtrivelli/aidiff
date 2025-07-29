@@ -13,7 +13,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="AIDiff: LLM-powered git diff reviewer")
     parser.add_argument('--base', type=str, default='origin/main', help='Base branch to diff against (default: origin/main)')
     parser.add_argument('--staged', action='store_true', help='Only include staged changes in the diff')
-    parser.add_argument('--modes', nargs='+', default=['security'], help='Review modes: security, accessibility, performance')
+    parser.add_argument('--modes', nargs='+', default=['security'], help='Review modes: security, accessibility, performance, quality')
     parser.add_argument('--include-untracked', action='store_true', help='Include untracked files in the diff')
     parser.add_argument('--provider', type=str, default='chatgpt', choices=['chatgpt', 'gemini', 'claude', 'copilot'], help='LLM provider to use (chatgpt, gemini, claude, copilot)')
     parser.add_argument('--model', type=str, default=None, help='LLM model name (e.g. gpt-4-turbo, gemini-pro, etc)')
