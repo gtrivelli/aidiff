@@ -48,8 +48,16 @@ class PromptManager:
             Combined prompt templates separated by two newlines
         """
         prompts = []
+        
+        # Always include base prompt first
+        base_prompt = self.load_prompt_template("base")
+        prompts.append(base_prompt)
+        
+        # Add mode-specific prompts
         for mode in modes:
-            prompts.append(self.load_prompt_template(mode))
+            if mode != "base":  # Avoid duplicating base prompt
+                prompts.append(self.load_prompt_template(mode))
+        
         return "\n\n".join(prompts)
 
     def build_final_prompt(self, modes: List[str], diff: str, max_diff_length: int = 8000) -> str:

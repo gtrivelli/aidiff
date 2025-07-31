@@ -51,8 +51,8 @@ class AIDiffCLI:
         parser.add_argument(
             '--provider', 
             type=str, 
-            default='openai',
-            choices=['openai', 'google', 'anthropic'],
+            default='chatgpt',
+            choices=['chatgpt', 'gemini', 'claude'],
             help='LLM provider to use'
         )
         
@@ -60,7 +60,7 @@ class AIDiffCLI:
             '--model', 
             type=str, 
             default=None,
-            help='LLM model name (e.g. gpt-4-turbo, gemini-pro, etc)'
+            help='LLM model name (e.g. gpt-4-turbo, gemini-pro, claude-3-sonnet, etc)'
         )
         
         parser.add_argument(
@@ -81,6 +81,13 @@ class AIDiffCLI:
             '--debug', 
             action='store_true',
             help='Print extra debug information'
+        )
+        
+        parser.add_argument(
+            '--prompts-dir', 
+            type=str, 
+            default='prompts',
+            help='Directory containing prompt templates'
         )
         
         return parser
@@ -134,7 +141,8 @@ class AIDiffCLI:
             staged=args.staged,
             include_untracked=args.include_untracked,
             dry_run=args.dry_run,
-            debug=args.debug
+            debug=args.debug,
+            prompts_dir=args.prompts_dir
         )
 
 

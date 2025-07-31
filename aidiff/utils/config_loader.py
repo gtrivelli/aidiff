@@ -46,12 +46,29 @@ class ConfigLoader:
             )
         return key
 
+    def get_anthropic_api_key(self) -> str:
+        """
+        Get Anthropic API key from environment.
+        
+        Returns:
+            API key string
+            
+        Raises:
+            ConfigError: If API key is not found
+        """
+        key = os.getenv("ANTHROPIC_API_KEY")
+        if not key:
+            raise ConfigError(
+                "ANTHROPIC_API_KEY not found. Please set it in your .env file or environment variables."
+            )
+        return key
+
     def get_api_key_for_provider(self, provider: str) -> str:
         """
         Get API key for the specified provider.
         
         Args:
-            provider: Provider name ("openai", "google", etc.)
+            provider: Provider name ("chatgpt", "gemini", "claude")
             
         Returns:
             API key string
@@ -60,8 +77,9 @@ class ConfigLoader:
             ConfigError: If provider is not supported or API key is not found
         """
         key_getters = {
-            "openai": self.get_openai_api_key,
-            "google": self.get_gemini_api_key,
+            "chatgpt": self.get_openai_api_key,
+            "gemini": self.get_gemini_api_key,
+            "claude": self.get_anthropic_api_key,
         }
         
         if provider not in key_getters:

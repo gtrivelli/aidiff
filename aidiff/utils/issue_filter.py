@@ -123,7 +123,7 @@ class IssueFilter:
         if not any(getattr(issue, f, '').strip() for f in important_fields):
             return False
         
-        # Skip if 'issue' field is just a generic field label or empty
+        # Skip if 'issue' field is exactly a generic field label or empty
         issue_val = issue.issue.strip().lower()
         if issue_val in self.generic_fields or not issue_val or re.fullmatch(r'^[\W_]+$', issue_val):
             return False
