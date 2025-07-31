@@ -6,7 +6,6 @@ from .base import LLMProvider
 from .chatgpt import ChatGPTProvider
 from .gemini import GeminiProvider
 from .claude import ClaudeProvider
-from .copilot import CopilotProvider
 
 class ProviderRegistry:
     """Registry for managing LLM providers"""
@@ -15,7 +14,6 @@ class ProviderRegistry:
         'chatgpt': ChatGPTProvider,
         'gemini': GeminiProvider,
         'claude': ClaudeProvider,
-        'copilot': CopilotProvider,
     }
     
     @classmethod

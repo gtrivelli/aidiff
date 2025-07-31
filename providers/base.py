@@ -2,7 +2,7 @@
 Base class for LLM providers
 """
 from abc import ABC, abstractmethod
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 class LLMProvider(ABC):
     """Abstract base class for LLM providers"""
