@@ -33,18 +33,5 @@ class TestDiffParsing(unittest.TestCase):
         cleaned = self.parser.clean_diff(raw)
         self.assertIn('+print("hi")', cleaned)
 
-class TestLLMOutputParsing(unittest.TestCase):
-    def setUp(self):
-        self.parser = IssueParser()
-        
-    def test_parse_llm_output(self):
-        llm_output = '''---\n**Issue:** Hardcoded secret\n**File:** foo.py\n**Severity:** High\n**Confidence:** 95%\n**Suggestion:** Remove secret\n---'''
-        issues = self.parser.parse_llm_output(llm_output)
-        # Only count non-empty issues
-        issues = [i for i in issues if i.issue or i.suggestion]
-        self.assertEqual(len(issues), 1)
-        self.assertEqual(issues[0].file, 'foo.py')
-        self.assertIn('Hardcoded secret', issues[0].issue)
-
 if __name__ == '__main__':
     unittest.main()

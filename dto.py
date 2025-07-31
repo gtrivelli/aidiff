@@ -2,7 +2,7 @@
 Data Transfer Objects (DTOs) for AutoDiff analysis results
 """
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional
 from enum import Enum
 import json
 

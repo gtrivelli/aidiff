@@ -204,34 +204,3 @@ class LLMResultProcessor:
         
         # Return first file if no match (fallback)
         return available_files[0] if available_files else None
-
-# Legacy compatibility function
-def parse_llm_output(llm_response: str, review_types: List[str] = None, files_analyzed: List[str] = None) -> List[dict]:
-    """
-    Legacy function to maintain compatibility with existing code
-    Returns list of dictionaries in the old format
-    """
-    if not review_types:
-        review_types = ['security']
-    if not files_analyzed:
-        files_analyzed = []
-        
-    processor = LLMResultProcessor()
-    result_dto = processor.process_llm_response(llm_response, review_types, files_analyzed)
-    
-    # Convert back to old format for compatibility
-    legacy_results = []
-    for file_analysis in result_dto.files:
-        for issue in file_analysis.issues:
-            legacy_results.append({
-                'issue': issue.issue,
-                'file': issue.file_path,
-                'line_number': ','.join(map(str, issue.line_numbers)),
-                'code': issue.code,
-                'severity': issue.severity.value,
-                'confidence': f"{issue.confidence}%",
-                'suggestion': issue.suggestion,
-                'review_type': issue.review_type.value
-            })
-    
-    return legacy_results
