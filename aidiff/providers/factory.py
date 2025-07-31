@@ -4,6 +4,7 @@ from typing import Dict, Type
 from aidiff.providers import LLMProvider
 from aidiff.providers.openai_provider import OpenAIProvider
 from aidiff.providers.google_provider import GoogleProvider
+from aidiff.providers.anthropic_provider import AnthropicProvider
 from aidiff.core.exceptions import LLMError
 
 
@@ -11,8 +12,9 @@ class LLMProviderFactory:
     """Factory for creating LLM provider instances."""
 
     _providers: Dict[str, Type[LLMProvider]] = {
-        "openai": OpenAIProvider,
-        "google": GoogleProvider,
+        "chatgpt": OpenAIProvider,
+        "gemini": GoogleProvider,
+        "claude": AnthropicProvider,
     }
 
     @classmethod

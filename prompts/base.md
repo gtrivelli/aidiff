@@ -12,6 +12,7 @@ Respond ONLY in the following markdown format for each issue found:
 **Code:** <the exact flagged line(s) from the diff>
 **Severity:** <Critical/High/Medium/Low>
 **Confidence:** <0-100%>
+**Review Type:** <security/accessibility/performance/quality - specify which type of issue this is>
 **Suggestion:** <actionable fix>
 ---
 
@@ -24,6 +25,14 @@ Do not include any prose, summary, or extra recommendations outside this format.
 - Always provide the actual code, file, and line number(s) for each issue.
 - Output must be strictly in the markdown format above, with no extra text.
 - **CRITICAL:** Match the EXACT code line content when reporting line numbers - do not confuse similar patterns or empty lines
+
+## REVIEW TYPE FILTERING
+**CRITICAL:** Only report issues that match the specific review type(s) being performed. 
+- If performing a security review, only report security vulnerabilities
+- If performing an accessibility review, only report accessibility violations  
+- If performing multiple review types, only report issues that match those specific types
+- Do NOT include issues from other categories, even if they are valid problems
+- Each issue must be categorized with the correct **Review Type:** field
 
 ## LINE NUMBER ACCURACY
 **CRITICAL:** Line numbers must be precisely calculated from git diff headers.

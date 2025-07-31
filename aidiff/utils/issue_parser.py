@@ -31,7 +31,30 @@ class IssueParser:
             List of Issue objects
         """
         issues = []
+        
+        # Try splitting by --- separators first
         issue_blocks = re.split(r'---+', output)
+        
+        # If no separators found (only one block), try splitting by Issue: pattern
+        if len(issue_blocks) <= 1:
+            # Split by lines that start with "Issue:" or "**Issue:**"
+            lines = output.splitlines()
+            current_block = []
+            issue_blocks = []
+            
+            for line in lines:
+                stripped = line.strip()
+                if stripped.startswith('Issue:') or stripped.startswith('**Issue:**'):
+                    # Start of new issue, save previous block if it exists
+                    if current_block:
+                        issue_blocks.append('\n'.join(current_block))
+                    current_block = [line]
+                elif current_block:  # Only add lines if we're inside an issue block
+                    current_block.append(line)
+            
+            # Add the last block
+            if current_block:
+                issue_blocks.append('\n'.join(current_block))
         
         for block in issue_blocks:
             block = block.strip()
@@ -40,6 +63,12 @@ class IssueParser:
             
             issue_data = self._parse_issue_block(block)
             if issue_data:
+                # Ensure required fields are present
+                if 'issue' not in issue_data or not issue_data['issue']:
+                    issue_data['issue'] = block.strip()[:100] + "..." if len(block.strip()) > 100 else block.strip()
+                if 'file' not in issue_data or not issue_data['file']:
+                    issue_data['file'] = 'N/A'
+                
                 issues.append(Issue(**issue_data))
         
         # If no issues found, treat whole output as single issue
@@ -76,11 +105,17 @@ class IssueParser:
         for line in lines:
             line_stripped = line.strip()
             
-            # Check for markdown field prefix
+            # Check for markdown field prefix (**Field:**) or plain field prefix (Field:)
             matched_field = None
             for markdown_field in self.field_map.keys():
-                prefix = f"**{markdown_field}:**"
-                if line_stripped.startswith(prefix) and not in_code_block:
+                # Try markdown format first
+                markdown_prefix = f"**{markdown_field}:**"
+                plain_prefix = f"{markdown_field}:"
+                
+                if line_stripped.startswith(markdown_prefix) and not in_code_block:
+                    matched_field = markdown_field
+                    break
+                elif line_stripped.startswith(plain_prefix) and not in_code_block:
                     matched_field = markdown_field
                     break
 
@@ -91,7 +126,15 @@ class IssueParser:
                     issue_data[self.field_map.get(field, field.lower().replace(' ', '_'))] = val
 
                 field = matched_field
-                val = line_stripped[len(f"**{matched_field}:**"):].lstrip()
+                
+                # Extract value based on format (markdown or plain)
+                markdown_prefix = f"**{matched_field}:**"
+                plain_prefix = f"{matched_field}:"
+                
+                if line_stripped.startswith(markdown_prefix):
+                    val = line_stripped[len(markdown_prefix):].lstrip()
+                else:
+                    val = line_stripped[len(plain_prefix):].lstrip()
                 
                 # Detect code block delimiter
                 if field == 'Code' and (val.startswith('```') or val.startswith('``')):

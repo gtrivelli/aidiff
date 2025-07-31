@@ -23,9 +23,9 @@ class ReviewMode(Enum):
 
 class LLMProvider(Enum):
     """Supported LLM providers."""
-    OPENAI = "openai"
-    GOOGLE = "google"
-    ANTHROPIC = "anthropic"
+    CHATGPT = "chatgpt"
+    GEMINI = "gemini"
+    CLAUDE = "claude"
 
 
 class OutputFormat(Enum):
@@ -58,7 +58,7 @@ class ReviewConfig:
     """Configuration for a review session."""
     base_branch: str = "origin/main"
     modes: List[str] = None
-    provider: str = "openai"
+    provider: str = "chatgpt"
     model: Optional[str] = None
     output_format: str = "markdown"
     staged: bool = False
