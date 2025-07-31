@@ -64,7 +64,7 @@ def build_final_prompt(modes, diff, prompts_dir=None, max_diff_length=8000):
     if len(diff) > max_diff_length:
         warning = f"\n\n⚠️ Warning: Diff is very large ({len(diff)} chars). LLM may not process the full context."
     
-    # Enhanced formatting with line number guidance
+    # Enhanced formatting with precise line number guidance
     formatted = f"""{prompt}
 
 ---
@@ -76,7 +76,8 @@ def build_final_prompt(modes, diff, prompts_dir=None, max_diff_length=8000):
 
 ### Git Diff Analysis
 
-**IMPORTANT:** Pay close attention to the line numbers in the @@ headers and use them for accurate line number reporting.
+**CRITICAL LINE NUMBER INSTRUCTIONS:**
+For `@@ -X,Y +A,B @@`, the first line after this header is line A. Count EVERY line including empty lines marked with `+`. Each `+` line increments the count, even if it's blank.
 
 ```diff
 {diff}
@@ -87,7 +88,7 @@ def build_final_prompt(modes, diff, prompts_dir=None, max_diff_length=8000):
 def call_llm(prompt, provider="chatgpt", model=None):
     """
     Send the prompt to the selected LLM provider using the new modular system.
-    provider: 'chatgpt', 'gemini', 'claude', 'copilot', etc.
+    provider: 'chatgpt', 'gemini', 'claude'
     model: model name to use (overrides default)
     Returns the parsed response or raises an error.
     """
@@ -98,7 +99,7 @@ def call_llm(prompt, provider="chatgpt", model=None):
         api_key = get_openai_api_key()
     elif provider == "gemini":
         api_key = get_gemini_api_key()
-    # claude and copilot handle their own API keys
+    # claude handles its own API key
     
     try:
         # Get provider instance from registry

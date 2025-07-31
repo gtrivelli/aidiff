@@ -150,5 +150,3 @@ FormatterFactory._formatters["custom"] = MyCustomFormatter
 ```
 
 ---
-
-For more details, see the [copilot_checklist.md](copilot_checklist.md).
