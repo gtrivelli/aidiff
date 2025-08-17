@@ -10,6 +10,7 @@ from aidiff.formatters.factory import FormatterFactory
 from aidiff.utils.config_loader import ConfigLoader
 from aidiff.utils.issue_parser import IssueParser
 from aidiff.utils.issue_filter import IssueFilter
+from aidiff.utils.dto_converter import DTOConverter
 from aidiff.core.exceptions import AIDiffError, GitError
 
 
@@ -86,12 +87,23 @@ class AIDiffReviewer:
 
             # Step 9: Format output
             if not filtered_issues:
-                return "No issues found by LLM."
+                if self.config.output_format == "json":
+                    # Return empty DTO structure for JSON format
+                    empty_dto = DTOConverter.convert_issues_to_dto([], self.config.modes)
+                    return empty_dto.to_json()
+                else:
+                    return "No issues found by LLM."
 
-            formatter = FormatterFactory.create_formatter(self.config.output_format)
-            formatted_output = "\n===== LLM REVIEW RESULTS =====\n\n" + formatter.format_issues(filtered_issues)
-            
-            return formatted_output
+            # Check if JSON output is requested
+            if self.config.output_format == "json":
+                # Convert issues to DTO and return as JSON
+                analysis_result = DTOConverter.convert_issues_to_dto(filtered_issues, self.config.modes)
+                return analysis_result.to_json()
+            else:
+                # Use legacy formatter for plain/markdown output
+                formatter = FormatterFactory.create_formatter(self.config.output_format)
+                formatted_output = "\n===== LLM REVIEW RESULTS =====\n\n" + formatter.format_issues(filtered_issues)
+                return formatted_output
 
         except Exception as e:
             if isinstance(e, AIDiffError):

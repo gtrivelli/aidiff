@@ -67,8 +67,8 @@ class AIDiffCLI:
             '--output', 
             type=str, 
             default='markdown',
-            choices=['markdown', 'plain'],
-            help='Output format: markdown or plain'
+            choices=['markdown', 'plain', 'json'],
+            help='Output format: markdown, plain, or json'
         )
         
         parser.add_argument(

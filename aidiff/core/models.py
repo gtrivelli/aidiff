@@ -32,6 +32,7 @@ class OutputFormat(Enum):
     """Output formats."""
     MARKDOWN = "markdown"
     PLAIN = "plain"
+    JSON = "json"
 
 
 @dataclass
